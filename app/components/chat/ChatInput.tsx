@@ -5,21 +5,39 @@ import { getSocket } from "@/lib/socket";
 
 type ChatInputProps = {
   to?: string;
+  gameId?: string;
 };
 
-export default function ChatInput({ to }: ChatInputProps) {
+export default function ChatInput({ to, gameId }: ChatInputProps) {
   const [text, setText] = useState("");
   const socket = getSocket();
 
   const sendMessage = () => {
     const trimmed = text.trim();
-    if (!trimmed || !to) return;
 
-    socket.emit("dm", {
-      to,
-      content: trimmed,
-    });
+    // ❌ prevent empty messages
+    if (!trimmed) return;
 
+    // ❌ prevent sending without target
+    if (!to && !gameId) {
+      console.warn("No target provided");
+      return;
+    }
+
+    // ✅ DM has priority
+    if (to) {
+      socket.emit("dm", {
+        to,
+        content: trimmed,
+      });
+    } else {
+      socket.emit("game_chat", {
+        gameId,
+        content: trimmed,
+      });
+    }
+
+    // ✅ clear input ONLY (no optimistic UI update here)
     setText("");
   };
 
@@ -43,7 +61,7 @@ export default function ChatInput({ to }: ChatInputProps) {
       <button
         onClick={sendMessage}
         disabled={!text.trim()}
-        className="bg-blue-600 px-4 rounded hover:bg-blue-700 disabled:opacity-50"
+        className="bg-blue-600 px-4 rounded hover:bg-blue-700 disabled:opacity-50 transition"
       >
         Send
       </button>
