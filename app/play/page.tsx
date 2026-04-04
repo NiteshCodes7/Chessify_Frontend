@@ -10,10 +10,21 @@ export default function PlayPage() {
 
   useEffect(() => {
     const socket = getSocket();
+    let emitted = false;
 
-    socket.emit("find_match");
-
-    const onMatchFound = ({ gameId, color, timeMs, incrementMs, lastTimestamp }: { gameId: string; color: 'white' | 'black'; timeMs: number; incrementMs: number; lastTimestamp: number }) => {
+    const onMatchFound = ({
+      gameId,
+      color,
+      timeMs,
+      incrementMs,
+      lastTimestamp,
+    }: {
+      gameId: string;
+      color: "white" | "black";
+      timeMs: number;
+      incrementMs: number;
+      lastTimestamp: number;
+    }) => {
       useGameStore.setState({
         playerColor: color,
         serverTime: { white: timeMs, black: timeMs },
@@ -23,30 +34,36 @@ export default function PlayPage() {
       router.push(`/game/${gameId}`);
     };
 
-    const onMatchTimeout = () => {
-      alert("No opponent found. Try again later.");
-    };
-
-    const onMatchCanceled = () => {
-      router.push("/");
-    };
+    const onMatchTimeout = () => alert("No opponent found. Try again later.");
+    const onMatchCanceled = () => router.push("/");
 
     socket.on("match_found", onMatchFound);
     socket.on("match_timeout", onMatchTimeout);
     socket.on("match_canceled", onMatchCanceled);
 
+    const emitFindMatch = () => {
+      if (emitted) return;
+      emitted = true;
+      socket.emit("find_match");
+    };
+
+    if (socket.connected) {
+      emitFindMatch();
+    } else {
+      socket.once("connect", emitFindMatch);
+    }
+
     return () => {
       socket.off("match_found", onMatchFound);
       socket.off("match_timeout", onMatchTimeout);
       socket.off("match_canceled", onMatchCanceled);
-      // ✅ no disconnect — socket is shared
+      socket.off("connect", emitFindMatch);
     };
   }, [router]);
 
   const onCancel = () => {
     const socket = getSocket();
     socket.emit("cancel_match");
-    // ✅ listener is registered in useEffect, not here
   };
 
   return (

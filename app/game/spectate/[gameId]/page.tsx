@@ -17,7 +17,6 @@ export default function SpectatePage({
 
   useEffect(() => {
     const socket = getSocket();
-    socket.connect();
 
     socket.emit("spectate", gameId);
 
@@ -41,7 +40,6 @@ export default function SpectatePage({
 
     return () => {
       socket.off("state_update");
-      socket.disconnect();
     };
   }, [gameId]);
 

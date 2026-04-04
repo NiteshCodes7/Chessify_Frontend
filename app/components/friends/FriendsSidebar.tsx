@@ -3,6 +3,11 @@
 import { useState, useEffect } from "react";
 import { getPresenceSocket } from "@/lib/presenceSocket";
 import FriendItem from "./FriendItem";
+import { Separator } from "@/components/ui/separator";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 type Status = "online" | "playing" | "offline";
 
@@ -27,6 +32,7 @@ type GroupedFriends = {
 
 export default function FriendsSidebar({ onSelect }: FriendsSidebarProps) {
   const [friends, setFriends] = useState<Friend[]>([]);
+  const [search, setSearch] = useState("");
   const socket = getPresenceSocket();
 
   function groupFriends(list: Friend[]): GroupedFriends {
@@ -37,18 +43,24 @@ export default function FriendsSidebar({ onSelect }: FriendsSidebarProps) {
     };
   }
 
+  /* Search */
+  const query = search.trim().toLowerCase();
+
+  const filteredFriends = friends.filter((f) =>
+    f.name.toLowerCase().includes(query)
+  );
+
+  const grouped = groupFriends(filteredFriends);
+
   useEffect(() => {
-    // Buffer presence updates that arrive before friends list loads
     const pendingUpdates = new Map<string, Status>();
 
     const handleFriends = (data: Friend[]) => {
-      console.log("[friends_with_presence] received:", data);
-      // Apply any buffered presence updates on top
       setFriends(
         data.map((f) => ({
           ...f,
           status: pendingUpdates.get(f.id) ?? f.status,
-        })),
+        }))
       );
       pendingUpdates.clear();
     };
@@ -60,16 +72,16 @@ export default function FriendsSidebar({ onSelect }: FriendsSidebarProps) {
       userId: string;
       status: Status;
     }) => {
-      console.log("[presence_update] received:", userId, status);
-      // Buffer it in case friends list hasn't loaded yet
       pendingUpdates.set(userId, status);
-      // Also apply immediately if friends already loaded
+
       setFriends((prev) => {
-        if (prev.length === 0) return prev;
-        return prev.map((f) => (f.id === userId ? { ...f, status } : f));
+        if (!prev.length) return prev;
+        return prev.map((f) =>
+          f.id === userId ? { ...f, status } : f
+        );
       });
 
-      if (status === 'online') {
+      if (status === "online") {
         setTimeout(() => socket.emit("get_friends_with_presence"), 300);
       }
     };
@@ -93,31 +105,76 @@ export default function FriendsSidebar({ onSelect }: FriendsSidebarProps) {
     };
   }, [socket]);
 
-  const groups = ["online", "playing", "offline"] as const;
-  const grouped = groupFriends(friends);
-
   return (
-    <div className="w-64 bg-gray-900 text-white h-full p-3">
-      <h2 className="text-lg font-bold mb-3">Friends</h2>
-      {groups.map((group) => {
-        const list = grouped[group];
-        return (
-          <div key={group}>
-            <h3 className="text-xs text-gray-400 mt-3 uppercase">{group}</h3>
-            {list.length === 0 ? (
-              <p className="text-xs text-gray-500 px-2">No users</p>
-            ) : (
-              list.map((friend) => (
-                <FriendItem
-                  key={friend.id}
-                  friend={friend}
-                  onClick={() => onSelect(friend)}
-                />
-              ))
-            )}
-          </div>
-        );
-      })}
+    <div className="w-72 h-full bg-background border-r flex flex-col">
+      
+      {/* Header */}
+      <div className="p-4 text-lg font-semibold">Friends</div>
+
+      {/* Search */}
+      <div className="p-3 border-b">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search"
+            className="pl-9 pr-8 h-9 bg-muted border-none focus-visible:ring-1"
+          />
+
+          {search && (
+            <Button
+            variant={"ghost"}
+              onClick={() => setSearch("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs"
+            >
+              ✕
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {search && filteredFriends.length === 0 && (
+        <p className="text-xs text-muted-foreground px-3 py-2">
+          No results found
+        </p>
+      )}
+
+      <Separator />
+
+      {/* Friends List */}
+      <ScrollArea className="flex-1 px-3">
+        {(["online", "playing", "offline"] as const).map((group) => {
+          const list = grouped[group];
+
+          if (search && list.length === 0) return null;
+
+          return (
+            <div key={group} className="mt-4">
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-2 px-2">
+                {group}
+              </h3>
+
+              <div className="space-y-1">
+                {list.length === 0 ? (
+                  <p className="text-xs text-muted-foreground px-2">
+                    No users
+                  </p>
+                ) : (
+                  list.map((friend) => (
+                    <FriendItem
+                      key={friend.id}
+                      friend={friend}
+                      onClick={() => onSelect(friend)}
+                    />
+                  ))
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </ScrollArea>
     </div>
   );
 }

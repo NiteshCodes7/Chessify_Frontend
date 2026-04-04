@@ -6,6 +6,7 @@ import ChatInput from "./ChatInput";
 import { getUserId } from "@/lib/getUser";
 import { api } from "@/lib/api";
 import { getSocket } from "@/lib/socket";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 type Friend = {
   id: string;
@@ -39,6 +40,7 @@ export default function ChatWindow({
 }: ChatWindowProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const bottomRef = useRef<HTMLDivElement | null>(null);
+  const isGameChat = !!gameId;
   const socket = getSocket();
 
   /* ---------------- DM CHAT ---------------- */
@@ -98,7 +100,7 @@ export default function ChatWindow({
 
     const socket = getSocket();
 
-    if(!socket.connected){
+    if (!socket.connected) {
       socket.connect();
     }
 
@@ -133,22 +135,48 @@ export default function ChatWindow({
   }
 
   return (
-    <div className="flex flex-col h-full flex-1 bg-gray-800 text-white">
+    <div
+      className={`flex flex-col h-full max-h-full overflow-hidden ${
+        isGameChat
+          ? "bg-gray-900 text-gray-200 border border-gray-700"
+          : "bg-background"
+      }`}
+    >
       {/* Header */}
-      <div className="p-3 border-b border-gray-700">
-        <h3>{selectedFriend?.name}</h3>
-      </div>
+      <div className="flex items-center gap-3 px-4 py-3 shrink-0 border-b border-gray-700">
+        <Avatar className="h-8 w-8 bg-indigo-600">
+          <AvatarFallback>GC</AvatarFallback>
+        </Avatar>
 
+        <div className="flex flex-col">
+          <span className="text-sm font-semibold text-white">
+            {isGameChat ? "Game Chat" : selectedFriend?.name}
+          </span>
+          {isGameChat && (
+            <span className="text-xs text-gray-400">Live match messages</span>
+          )}
+        </div>
+      </div>
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-2">
+      <div
+        className={`flex-1 overflow-y-auto px-3 py-2 space-y-2 ${
+          isGameChat ? "text-sm" : "space-y-3"
+        } chat-scroll`}
+      >
         {messages.map((msg, i) => (
-          <MessageItem key={msg.id ?? i} message={msg} />
+          <MessageItem
+            key={msg.id ?? i}
+            message={msg}
+            isGameChat={isGameChat}
+          />
         ))}
         <div ref={bottomRef} />
       </div>
 
       {/* Input */}
-      <ChatInput gameId={gameId} to={selectedFriend?.id} />
+      <div className="shrink-0 border-t">
+        <ChatInput gameId={gameId} to={selectedFriend?.id} />
+      </div>
     </div>
   );
 }

@@ -1,7 +1,8 @@
 "use client";
 
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { formatLastSeen } from "@/lib/lastSeen";
-import Image from "next/image";
 
 type Friend = {
   id: string;
@@ -19,45 +20,45 @@ type FriendItemProps = {
 };
 
 export default function FriendItem({ friend, onClick }: FriendItemProps) {
-  const statusColor =
+  const statusVariant =
     friend.status === "online"
-      ? "bg-green-500"
+      ? "default"
       : friend.status === "playing"
-        ? "bg-yellow-400"
-        : "bg-gray-500";
+        ? "secondary"
+        : "outline";
 
   return (
     <div
       onClick={onClick}
-      className="flex items-center gap-3 p-2 rounded-lg cursor-pointer hover:bg-gray-800 transition"
+      className="flex items-center gap-3 p-2 rounded-xl hover:bg-accent transition cursor-pointer"
     >
       {/* Avatar */}
-      <div className="relative w-8 h-8">
-        <Image
-          src={friend.avatar || "/avatar.png"}
-          alt={`${friend.name}'s avatar`}
-          fill
-          sizes="32px"
-          className="rounded-full object-cover"
-        />
-      </div>
+      <Avatar className="h-9 w-9">
+        <AvatarImage src={friend.avatar || "/avatar.png"} />
+        <AvatarFallback>{friend.name?.charAt(0)}</AvatarFallback>
+      </Avatar>
 
       {/* Info */}
       <div className="flex-1 min-w-0">
-        <p className="text-sm truncate">{friend.email}</p>
-        <p className="text-sm truncate">{friend.name}</p>
+        <p className="text-sm font-medium truncate">{friend.name}</p>
+
+        <p className="text-xs text-muted-foreground truncate">{friend.email}</p>
+
         {friend.rating !== undefined && (
-          <p className="text-xs text-gray-400">{friend.rating}</p>
+          <p className="text-xs text-muted-foreground">⭐ {friend.rating}</p>
         )}
+
         {friend.status === "offline" && (
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-muted-foreground">
             {formatLastSeen(friend.lastSeen)}
           </p>
         )}
       </div>
 
-      {/* Presence Dot */}
-      <span className={`w-3 h-3 rounded-full ${statusColor}`} />
+      {/* Status */}
+      <Badge variant={statusVariant} className="text-xs capitalize">
+        {friend.status || "offline"}
+      </Badge>
     </div>
   );
 }

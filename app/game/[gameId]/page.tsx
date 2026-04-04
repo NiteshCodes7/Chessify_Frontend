@@ -139,44 +139,49 @@ export default function GamePage({
   const resultMessage = getResultMessage();
 
   return (
-    <main className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
-      <div className="flex flex-col lg:flex-row gap-6 bg-gray-800 p-6 rounded-2xl shadow-2xl">
-        <div className="bg-gray-700 p-4 rounded-xl shadow-inner">
-          <ChessBoard />
+    <main className="min-h-screen bg-gray-900 flex items-center justify-center p-2 sm:p-4">
+      <div className="w-full max-w-6xl flex flex-col lg:flex-row gap-3 sm:gap-4 lg:gap-6 bg-gray-800 p-3 sm:p-4 lg:p-6 rounded-2xl shadow-2xl">
+        {/* CHESS BOARD */}
+        <div className="flex-1 bg-gray-700 p-2 sm:p-3 lg:p-4 rounded-xl shadow-inner flex items-center justify-center">
+          <div className="w-full max-w-125">
+            <ChessBoard />
+          </div>
         </div>
-        <div className="w-full lg:w-80 bg-gray-700 rounded-xl shadow-inner flex flex-col">
+
+        {/* CHAT */}
+        <div className="w-full lg:w-80 h-[38vh] sm:h-[42vh] md:h-[45vh] lg:h-auto bg-gray-700 rounded-xl shadow-inner flex flex-col overflow-hidden">
           <ChatWindow gameId={gameId} />
         </div>
+
+        {/* Game Over Overlay */}
+        {resultMessage && (
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-gray-800 p-10 rounded-2xl shadow-2xl flex flex-col items-center gap-6">
+              <h2 className="text-white text-4xl font-bold">{resultMessage}</h2>
+              <p className="text-gray-400 text-lg capitalize">
+                {status.state === "checkmate"
+                  ? `${status.winner} wins by checkmate`
+                  : "The game is a draw"}
+              </p>
+              <button
+                onClick={() => router.push("/")}
+                className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition"
+              >
+                Back to Home
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Promotion Modal */}
+        {promotionPending && promotionPending.color === playerColor && (
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-md flex items-center justify-center z-50">
+            <div className="bg-gray-800 p-6 rounded-xl shadow-xl">
+              <PromotionDialog onSelect={handlePromotionSelect} />
+            </div>
+          </div>
+        )}
       </div>
-
-      {/* Game Over Overlay */}
-      {resultMessage && (
-        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-gray-800 p-10 rounded-2xl shadow-2xl flex flex-col items-center gap-6">
-            <h2 className="text-white text-4xl font-bold">{resultMessage}</h2>
-            <p className="text-gray-400 text-lg capitalize">
-              {status.state === "checkmate"
-                ? `${status.winner} wins by checkmate`
-                : "The game is a draw"}
-            </p>
-            <button
-              onClick={() => router.push("/")}
-              className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition"
-            >
-              Back to Home
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Promotion Modal */}
-      {promotionPending && promotionPending.color === playerColor && (
-        <div className="absolute inset-0 bg-black/50 backdrop-blur-md flex items-center justify-center z-50">
-          <div className="bg-gray-800 p-6 rounded-xl shadow-xl">
-            <PromotionDialog onSelect={handlePromotionSelect} />
-          </div>
-        </div>
-      )}
     </main>
   );
 }

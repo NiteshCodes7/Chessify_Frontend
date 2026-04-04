@@ -4,11 +4,6 @@ let presenceSocket: Socket | null = null;
 
 export function getPresenceSocket() {
   if (!presenceSocket) {
-    const token =
-      typeof window !== "undefined"
-        ? localStorage.getItem("wsToken")
-        : null;
-
     presenceSocket = io("http://localhost:3001/presence", {
       transports: ["websocket"],
       autoConnect: false,

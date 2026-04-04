@@ -1,5 +1,7 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { api } from "@/lib/api";
 import { useEffect, useState } from "react";
 
@@ -46,34 +48,30 @@ export default function FriendRequests() {
 
   return (
     <div className="p-4 space-y-3">
-      <h2 className="text-lg font-bold">Friend Requests</h2>
+      <h2 className="text-xl font-semibold">Friend Requests</h2>
 
       {requests.map((req) => (
-        <div
-          key={req.id}
-          className="flex justify-between items-center bg-gray-800 p-3 rounded"
-        >
-          <div>
-            <p>{req.from.name}</p>
-            <p className="text-sm text-gray-400">{req.from.email}</p>
-          </div>
+        <Card key={req.id}>
+          <CardContent className="flex justify-between items-center p-4">
+            <div>
+              <p className="font-medium">{req.from.name}</p>
+              <p className="text-sm text-muted-foreground">{req.from.email}</p>
+            </div>
 
-          <div className="flex gap-2">
-            <button
-              onClick={() => accept(req.id)}
-              className="bg-green-600 px-3 py-1 rounded"
-            >
-              Accept
-            </button>
-
-            <button
-              onClick={() => reject(req.id)}
-              className="bg-red-600 px-3 py-1 rounded"
-            >
-              Reject
-            </button>
-          </div>
-        </div>
+            <div className="flex gap-2">
+              <Button size="sm" onClick={() => accept(req.id)}>
+                Accept
+              </Button>
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={() => reject(req.id)}
+              >
+                Reject
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       ))}
     </div>
   );

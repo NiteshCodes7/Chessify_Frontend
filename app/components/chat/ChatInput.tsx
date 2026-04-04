@@ -2,6 +2,9 @@
 
 import { useState, KeyboardEvent } from "react";
 import { getSocket } from "@/lib/socket";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Send } from "lucide-react";
 
 type ChatInputProps = {
   to?: string;
@@ -61,22 +64,24 @@ export default function ChatInput({ to, gameId }: ChatInputProps) {
   };
 
   return (
-    <div className="p-3 border-t border-gray-700 flex gap-2">
-      <input
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        onKeyDown={handleKeyDown}
-        placeholder="Type a message..."
-        className="flex-1 px-3 py-2 rounded bg-gray-900 text-white outline-none"
-      />
+    <div className="border-t bg-background p-3">
+      <div className="flex items-center gap-2">
+        <Input
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Type a message..."
+          className="flex-1"
+        />
 
-      <button
-        onClick={sendMessage}
-        disabled={!text.trim()}
-        className="bg-blue-600 px-4 rounded hover:bg-blue-700 disabled:opacity-50 transition"
-      >
-        Send
-      </button>
+        <Button
+          onClick={sendMessage}
+          disabled={!text.trim()}
+          size="icon"
+        >
+          <Send className="h-4 w-4" />
+        </Button>
+      </div>
     </div>
   );
 }
