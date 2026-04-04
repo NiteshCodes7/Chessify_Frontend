@@ -65,7 +65,7 @@ export default function FriendsSidebar({ onSelect }: FriendsSidebarProps) {
       pendingUpdates.set(userId, status);
       // Also apply immediately if friends already loaded
       setFriends((prev) => {
-        if (prev.length === 0) return prev; // not loaded yet, buffered above
+        if (prev.length === 0) return prev;
         return prev.map((f) => (f.id === userId ? { ...f, status } : f));
       });
 
