@@ -57,6 +57,3 @@ export type ReconnectionState = {
   };
 };
 
-export type TimeoutPayload = {
-  winner: "white" | "black";
-};

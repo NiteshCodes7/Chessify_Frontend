@@ -6,13 +6,7 @@ import Image from "next/image";
 import ChessClock from "./ChessClock";
 
 export default function ChessBoard({ spectator = false }) {
-  const {
-     board,
-     selected, 
-     turn, 
-     status, 
-     handleSquareClick 
-    } = useGameStore();
+  const { board, selected, turn, status, handleSquareClick } = useGameStore();
 
   const playerColor = useGameStore((s) => s.playerColor);
   const legalMoves = useGameStore((s) => s.legalMoves);
@@ -34,7 +28,16 @@ export default function ChessBoard({ spectator = false }) {
 
       <ChessClock />
 
-      <div className="grid grid-cols-8 w-126 h-126 border-4 border-black">
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(8, 1fr)",
+          gridTemplateRows: "repeat(8, 1fr)",
+          width: "min(90vw, 90vh, 504px)",
+          height: "min(90vw, 90vh, 504px)",
+        }}
+        className="border-4 border-black"
+      >
         {board.map((_, r) =>
           board[r].map((_, c) => {
             const realRow = getDisplayRow(r);
@@ -44,7 +47,6 @@ export default function ChessBoard({ spectator = false }) {
             const isDark = (r + c) % 2 === 1;
             const isSelected =
               selected?.row === realRow && selected?.col === realCol;
-
             const legalMove = legalMoves.some(
               (m) => m.row === realRow && m.col === realCol,
             );
@@ -93,32 +95,34 @@ export default function ChessBoard({ spectator = false }) {
                     handleSquareClick(getDisplayRow(r), getDisplayCol(c));
                 }}
                 className={`
-                  flex items-center justify-center
-                  ${spectator ? "cursor-default" : "cursor-pointer"} w-15.75 h-15.75
+                  relative flex items-center justify-center select-none
+                  ${spectator ? "cursor-default" : "cursor-pointer"}
                   ${isDark ? "bg-[rgb(105,146,62)]" : "bg-[#ffffff]"}
                   ${isSelected ? "ring-4 ring-yellow-400" : ""}
                   ${pawnPromotion ? "bg-amber-600 border-2 border-black" : ""}
                   ${castlingMove ? "bg-purple-400/50 border-2 border-black" : ""}
-                  ${legalMove ? "bg-blue-400/50 border-2 border-black" : ""}
+                  ${legalMove && !captured ? "bg-blue-400/50 border-2 border-black" : ""}
                   ${captured ? "bg-red-500 border-2 border-black" : ""}
-                  text-4xl select-none
                 `}
               >
-                {square
-                  ? (() => {
-                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                      const pieceSrc = (PIECE_SYMBOLS as any)[square.color][square.type];
-
-                      return (
+                {square &&
+                  (() => {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const pieceSrc = (PIECE_SYMBOLS as any)[square.color][
+                      square.type
+                    ];
+                    return (
+                      <div className="relative w-[82%] h-[82%]">
                         <Image
                           src={pieceSrc}
                           alt={`${square.color} ${square.type}`}
-                          className="w-10 h-10 pointer-events-none select-none"
                           draggable={false}
+                          fill
+                          className="pointer-events-none select-none object-contain"
                         />
-                      );
-                    })()
-                  : null}
+                      </div>
+                    );
+                  })()}
               </div>
             );
           }),

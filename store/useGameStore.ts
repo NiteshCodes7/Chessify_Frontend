@@ -112,7 +112,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
   turn: "white",
   selected: null,
-  status: { state: "playing" },
+  status: { state: "playing", winner: null },
   setStatus(status) {
     set({ status });
   },
@@ -340,7 +340,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
       board: initialBoard,
       turn: "white",
       selected: null,
-      status: { state: "playing" },
+      status: { state: "playing", winner: null },
+      promotionPending: null,
+      gameId: null,
     });
   },
 }));

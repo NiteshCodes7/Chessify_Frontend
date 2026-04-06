@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useGameStore } from "@/store/useGameStore";
+import { ClockFace } from "./ClockFace";
 
 export default function ChessClock() {
-  const { turn, serverTime, lastTimestamp } =
-    useGameStore();
+  const { turn, serverTime, lastTimestamp } = useGameStore();
 
   const [localTime, setLocalTime] = useState({
     white: serverTime.white,
@@ -14,32 +14,42 @@ export default function ChessClock() {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      const now = Date.now();
-      const elapsed = now - lastTimestamp;
-
+      const elapsed = Date.now() - lastTimestamp;
       setLocalTime({
-        white:
-          turn === "white"
-            ? serverTime.white - elapsed
-            : serverTime.white,
-        black:
-          turn === "black"
-            ? serverTime.black - elapsed
-            : serverTime.black,
+        white: turn === "white" ? serverTime.white - elapsed : serverTime.white,
+        black: turn === "black" ? serverTime.black - elapsed : serverTime.black,
       });
     }, 100);
-
     return () => clearInterval(interval);
   }, [turn, serverTime, lastTimestamp]);
 
   return (
-    <div className="flex flex-col items-center text-white">
-      <p>
-        White: {Math.max(0, localTime.white / 1000).toFixed(1)}s
-      </p>
-      <p>
-        Black: {Math.max(0, localTime.black / 1000).toFixed(1)}s
-      </p>
-    </div>
+    <>
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.2; }
+        }
+      `}</style>
+      <div
+        className="flex gap-1 w-full mb-2"
+        style={{ maxWidth: "clamp(280px, 80vw, 504px)" }}
+      >
+        <div className="flex-1">
+          <ClockFace
+            color="black"
+            timeMs={localTime.black}
+            active={turn === "black"}
+          />
+        </div>
+        <div className="flex-1">
+          <ClockFace
+            color="white"
+            timeMs={localTime.white}
+            active={turn === "white"}
+          />
+        </div>
+      </div>
+    </>
   );
 }

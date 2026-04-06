@@ -3,11 +3,13 @@ import { isKingInCheck } from "./isKingInCheck";
 import { hasAnyLegalMove } from "./hasAnyLegalMove";
 
 export type GameStatus =
-  | { state: "playing" }
-  | { state: "check"; color: "white" | "black" }
+  | { state: "playing"; winner: null }
+  | { state: "check"; color: "white" | "black"; winner: null }
   | { state: "checkmate"; winner: "white" | "black" }
-  | { state: "stalemate" }
-  | { state: "promotion" };
+  | { state: "stalemate"; winner: null }
+  | { state: "promotion"; winner: null }
+  | { state: "timeout"; winner: "white" | "black" }
+  | { state: "abandoned"; winner: "white" | "black" };
 
 export function getGameStatus(
   board: BoardState,
@@ -24,12 +26,12 @@ export function getGameStatus(
   }
 
   if (!inCheck && !hasMove) {
-    return { state: "stalemate" };
+    return { state: "stalemate", winner: null};
   }
 
   if (inCheck) {
-    return { state: "check", color: turn };
+    return { state: "check", color: turn, winner: null };
   }
 
-  return { state: "playing" };
+  return { state: "playing", winner: null };
 }
