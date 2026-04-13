@@ -6,6 +6,8 @@ import { connectAllSockets, disconnectAllSockets } from "@/lib/socketManager";
 import ChessLoader from "@/components/loader";
 import { getSocket } from "@/lib/socket";
 import { useToast } from "@/store/useToast";
+import { useInviteStore } from "@/store/useInviteStore";
+import { useGameStore } from "@/store/useGameStore";
 
 type AuthContextType = {
   loading: boolean;
@@ -83,6 +85,50 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       socket.off("banned", onBanned);
     };
   }, [authed]);
+
+  useEffect(() => {
+    const socket = getSocket();
+
+    const onGameInvite = ({
+      inviteId,
+      from,
+    }: {
+      inviteId: string;
+      from: string;
+    }) => {
+      useInviteStore.getState().setInvite({ inviteId, from });
+    };
+
+    const onMatchFound = ({
+      gameId,
+      color,
+      timeMs,
+      incrementMs,
+      lastTimestamp,
+    }: {
+      gameId: string;
+      color: "white" | "black";
+      timeMs: number;
+      incrementMs: number;
+      lastTimestamp: number;
+    }) => {
+      useGameStore.setState({
+        playerColor: color,
+        serverTime: { white: timeMs, black: timeMs },
+        lastTimestamp,
+        incrementMs,
+      });
+      window.location.href = `/game/${gameId}`;
+    };
+
+    socket.on("game_invite", onGameInvite);
+    socket.on("match_found", onMatchFound);
+
+    return () => {
+      socket.off("game_invite", onGameInvite);
+      socket.off("match_found", onMatchFound);
+    };
+  });
 
   if (loading) {
     return <ChessLoader />;

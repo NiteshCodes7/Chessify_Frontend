@@ -1,102 +1,146 @@
 "use client";
 
 import { api } from "@/lib/api";
-import { useState } from "react";
+import { useToast } from "@/store/useToast";
+import Image from "next/image";
+import { useEffect, useState } from "react";
 
 export default function AddFriend() {
-  const [email, setEmail] = useState("");
   const [status, setStatus] = useState<{ msg: string; ok: boolean } | null>(
     null,
   );
   const [loading, setLoading] = useState(false);
+  const [query, setQuery] = useState("");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [results, setResults] = useState<any[]>([]);
+  const [searching, setSearching] = useState(false);
+  const addToast = useToast((state) => state.addToast);
 
-  async function sendRequest() {
-    if (!email.trim()) return;
-    setLoading(true);
-    setStatus(null);
+  useEffect(() => {
+    if (query.trim().length < 2) {
+      setResults([]);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      try {
+        setSearching(true);
+
+        const res = await api.get("/friends/search", {
+          params: { q: query },
+        });
+
+        setResults(res.data);
+      } catch {
+        setResults([]);
+      } finally {
+        setSearching(false);
+      }
+    }, 350);
+
+    return () => clearTimeout(timer);
+  }, [query]);
+
+  async function sendRequest(identifier: string) {
     try {
-      await api.post("/friends/request", { email });
-      setStatus({ msg: "Request sent successfully.", ok: true });
-      setEmail("");
+      setLoading(true);
+
+      await api.post("/friends/request", { identifier });
+
+      addToast("Request sent successfully.", "success");
+
+      setQuery("");
+      setResults([]);
+      setStatus(null);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
-      const message = err?.response?.data?.message || "Failed to send request.";
-      setStatus({ msg: message, ok: false });
+      addToast(
+        err?.response?.data?.message || "Failed to send request.",
+        "error", 50, 50
+      );
     } finally {
       setLoading(false);
     }
   }
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") sendRequest();
-  };
-
   return (
     <div className="space-y-4">
       {/* Description */}
       <p className="text-[#878383] text-xs font-light leading-relaxed">
-        Enter a player&apos;s email address to send them a friend request.
+        Enter a player&apos;s email address or username to send them a friend
+        request.
       </p>
 
       {/* Input row */}
-      <div className="flex gap-2">
-        <div className="relative flex-1">
-          {/* Mail icon */}
-          <svg
-            className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#6c6a6a] pointer-events-none"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-          >
-            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-            <polyline points="22,6 12,13 2,6" />
-          </svg>
+      <div className="relative">
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            {/* Search icon */}
+            <svg
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#6c6a6a] pointer-events-none"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            >
+              <circle cx="11" cy="11" r="7" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
 
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => {
-              setEmail(e.target.value);
-              setStatus(null);
-            }}
-            onKeyDown={handleKeyDown}
-            placeholder="player@email.com"
-            className="w-full h-9 pl-9 pr-3 bg-[#0e0e0e] border border-[#1a1a1a] text-[#d0c8b8] placeholder-[#6c6a6a] text-xs font-light tracking-wide focus:outline-none focus:border-[#2a2a2a] transition-colors duration-150"
-            style={{ fontFamily: "inherit" }}
-          />
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search by email or username"
+              className="w-full h-9 pl-9 pr-3 bg-[#0e0e0e] border border-[#1a1a1a] text-[#d0c8b8] placeholder-[#6c6a6a] text-xs font-light tracking-wide focus:outline-none focus:border-[#2a2a2a] transition-colors duration-150"
+            />
+          </div>
         </div>
 
-        <button
-          onClick={sendRequest}
-          disabled={loading || !email.trim()}
-          className="px-4 h-9 text-xs font-light tracking-[0.12em] uppercase border transition-all duration-150 disabled:opacity-30 disabled:cursor-not-allowed"
-          style={{
-            borderColor: loading ? "#1a1a1a" : "#c8a96e",
-            color: loading ? "#444" : "#c8a96e",
-            background: "transparent",
-          }}
-          onMouseEnter={(e) => {
-            if (!loading && email.trim()) {
-              (e.currentTarget as HTMLButtonElement).style.background =
-                "#c8a96e";
-              (e.currentTarget as HTMLButtonElement).style.color = "#0a0a0a";
-            }
-          }}
-          onMouseLeave={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.background =
-              "transparent";
-            (e.currentTarget as HTMLButtonElement).style.color = loading
-              ? "#444"
-              : "#c8a96e";
-          }}
-        >
-          {loading ? (
-            <div className="w-3 h-3 rounded-full border border-[#c8a96e]/30 border-t-[#c8a96e] animate-spin" />
-          ) : (
-            "Send"
-          )}
-        </button>
+        {/* Fixed/Floating Dropdown */}
+        {(results.length > 0 || searching) && (
+          <div
+            className="absolute left-0 right-0 top-full mt-2 z-50 overflow-hidden border border-[#1a1a1a] bg-[#0e0e0e] shadow-[0_10px_30px_rgba(0,0,0,0.45)]"
+            style={{ maxHeight: "260px", overflowY: "auto" }}
+          >
+            {searching && (
+              <div className="px-3 py-3 text-xs text-[#666]">Searching...</div>
+            )}
+
+            {!searching &&
+              results.map((user) => (
+                <button
+                  key={user.id}
+                  disabled={loading}
+                  onClick={() => sendRequest(user.email)}
+                  className="w-full px-3 py-2 flex items-center gap-3 hover:bg-[#151515] border-b border-[#141414] last:border-b-0"
+                >
+                  <Image
+                    src={user.avatar || "/assets/default-avatar.png"}
+                    alt={user.username}
+                    width={28}
+                    height={28}
+                    className="w-7 h-7 rounded-full object-cover"
+                  />
+
+                  <div className="text-left min-w-0">
+                    <p className="text-[#d0c8b8] text-xs truncate">
+                      @{user.username}
+                    </p>
+                    <p className="text-[#666] text-[11px] truncate">
+                      {user.email}
+                    </p>
+                  </div>
+                </button>
+              ))}
+
+            {!searching && results.length === 0 && query.trim().length >= 2 && (
+              <div className="px-3 py-3 text-xs text-[#666]">
+                No players found
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Status message */}

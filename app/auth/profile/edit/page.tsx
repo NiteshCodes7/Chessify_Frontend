@@ -145,10 +145,10 @@ export default function EditProfilePage() {
         className="relative w-full max-w-md fade-up z-90 p-8"
       >
         {/* Top Left Corner */}
-        <span className="absolute top-0 left-0 w-15 h-15 border-t border-l border-[#c8a96e]" />
+        <span className="absolute top-0 left-0 w-4.5 h-4.5 border-t border-l border-[#c8a96e]" />
 
         {/* Bottom Right Corner */}
-        <span className="absolute bottom-0 right-0 w-15 h-15 border-b border-r border-[#c8a96e]" />
+        <span className="absolute bottom-0 right-0 w-4.5 h-4.5 border-b border-r border-[#c8a96e]" />
 
         {/* Header */}
         <div className="flex items-center gap-3 mb-8">

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { getPresenceSocket } from "@/lib/presenceSocket";
-import { formatLastSeen } from "@/lib/lastSeen";
+import FriendItem from "./FriendsItem";
 
 type Status = "online" | "playing" | "offline";
 
@@ -53,11 +53,11 @@ export default function FriendsSidebar({ onSelect }: FriendsSidebarProps) {
 
   const query = search.trim().toLowerCase();
   const filteredFriends = friends.filter((f) =>
-    f.name.toLowerCase().includes(query)
+    f.name.toLowerCase().includes(query),
   );
   const grouped = groupFriends(filteredFriends);
   const totalOnline = friends.filter(
-    (f) => f.status === "online" || f.status === "playing"
+    (f) => f.status === "online" || f.status === "playing",
   ).length;
 
   // handle latest status of users
@@ -70,12 +70,18 @@ export default function FriendsSidebar({ onSelect }: FriendsSidebarProps) {
         data.map((f) => ({
           ...f,
           status: pendingUpdates.get(f.id) ?? f.status,
-        }))
+        })),
       );
       pendingUpdates.clear();
     };
 
-    const handlePresence = ({ userId, status }: { userId: string; status: Status }) => {
+    const handlePresence = ({
+      userId,
+      status,
+    }: {
+      userId: string;
+      status: Status;
+    }) => {
       // Add buffer for status
       pendingUpdates.set(userId, status);
       setFriends((prev) => {
@@ -149,7 +155,10 @@ export default function FriendsSidebar({ onSelect }: FriendsSidebarProps) {
           />
           {search && (
             <button
-              onClick={() => { setSearch(""); inputRef.current?.focus(); }}
+              onClick={() => {
+                setSearch("");
+                inputRef.current?.focus();
+              }}
               className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#333] hover:text-[#555] text-xs transition-colors"
             >
               ×
@@ -160,7 +169,7 @@ export default function FriendsSidebar({ onSelect }: FriendsSidebarProps) {
         {/* No results */}
         {search && filteredFriends.length === 0 && (
           <p className="text-[#6a6969] text-xs font-light mt-2 px-1">
-            No results for &quot;{search}&apos;
+            No results for &quot;{search}&quot;
           </p>
         )}
       </div>
@@ -195,67 +204,11 @@ export default function FriendsSidebar({ onSelect }: FriendsSidebarProps) {
               ) : (
                 <div className="space-y-px">
                   {list.map((friend) => (
-                    <button
+                    <FriendItem
                       key={friend.id}
+                      friend={friend}
                       onClick={() => onSelect(friend)}
-                      className="friend-row w-full text-left px-2 py-2 relative group transition-colors duration-100"
-                    >
-                      {/* Hover bg */}
-                      <div className="friend-row-bg absolute inset-0 bg-[#0e0e0e] opacity-0 transition-opacity duration-100" />
-
-                      <div className="relative flex items-center gap-2.5">
-                        {/* Avatar */}
-                        <div className="relative shrink-0">
-                          <div className="w-7 h-7 border border-[#1a1a1a] bg-[#111] flex items-center justify-center">
-                            {friend.avatar ? (
-                              // eslint-disable-next-line @next/next/no-img-element
-                              <img
-                                src={friend.avatar}
-                                alt={friend.name}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <span className="text-[11px] text-[#666] font-light">
-                                {friend.name[0]?.toUpperCase()}
-                              </span>
-                            )}
-                          </div>
-                          {/* Status dot */}
-                          <div
-                            className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full border border-[#080808]"
-                            style={{ background: STATUS_COLORS[friend.status ?? "offline"] }}
-                          />
-                        </div>
-
-                        {/* Name + info */}
-                        <div className="min-w-0 flex-1">
-                          <p className="text-[#d0c8b8] group-hover:text-[#f0ebe0] text-xs font-light truncate transition-colors duration-100">
-                            {friend.name}
-                          </p>
-                          <p className="text-[#555] group-hover:text-[#555] text-[10px] font-light truncate transition-colors duration-100">
-                            {friend.status === "playing"
-                              ? "In a game"
-                              : friend.status === "online"
-                                ? "Online"
-                                : friend.lastSeen
-                                  ? `Last seen ${formatLastSeen(friend.lastSeen)}`
-                                  : "Offline"}
-                          </p>
-                        </div>
-
-                        {/* Rating */}
-                        {friend.rating && (
-                          <div className="shrink-0 text-right">
-                            <span
-                              className="text-[10px] text-[#555] group-hover:text-[#c8a96e] font-light transition-colors duration-100"
-                              style={{ fontFamily: "Georgia, serif" }}
-                            >
-                              {friend.rating}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    </button>
+                    />
                   ))}
                 </div>
               )}
@@ -266,7 +219,12 @@ export default function FriendsSidebar({ onSelect }: FriendsSidebarProps) {
         {/* Empty state */}
         {friends.length === 0 && !search && (
           <div className="flex flex-col items-center justify-center py-12 gap-3">
-            <span className="text-2xl opacity-10 select-none" style={{ color: "#878383", opacity: 0.7}}>♟</span>
+            <span
+              className="text-2xl select-none"
+              style={{ color: "#878383", opacity: 0.7 }}
+            >
+              ♟
+            </span>
             <p className="text-[#878383] text-xs font-light tracking-wide">
               No friends yet
             </p>
