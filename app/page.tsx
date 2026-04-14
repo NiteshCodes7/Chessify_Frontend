@@ -8,7 +8,6 @@ import { useGameStore } from "@/store/useGameStore";
 import { ReconnectionState } from "@/types/socket";
 import Image from "next/image";
 import { api, setAccessToken } from "@/lib/api";
-import { localApi } from "@/lib/localApi";
 
 export default function LandingPage() {
   const router = useRouter();
@@ -19,13 +18,9 @@ export default function LandingPage() {
     try {
       await api.post("/auth/logout");
     } catch {}
-
-    await localApi.post("/api/auth/logout");
-
-    setAccessToken(null);
     localStorage.removeItem("wsToken");
+    setAccessToken(null);
     setAuthed(false);
-
     router.push("/auth/login");
   }
 

@@ -9,7 +9,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useToast } from "@/store/useToast";
 import GoogleButton from "@/components/GoogleButton";
-import { localApi } from "@/lib/localApi";
 
 /* ─── Keyframes ─── */
 const styles = `
@@ -120,15 +119,8 @@ export default function LoginPage() {
     try {
       setLoading(true);
       const { data } = await api.post("/auth/login", { email, password });
-
       setAccessToken(data.accessToken);
       localStorage.setItem("wsToken", data.wsToken);
-
-      await localApi.post("/api/auth/login", {
-        sessionToken: data.sessionToken,
-        refreshToken: data.refreshToken,
-      });
-
       setAuthed(true);
       router.push(redirect);
     } catch (err: any) {
