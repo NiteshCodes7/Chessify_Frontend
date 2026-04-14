@@ -4,7 +4,7 @@ let presenceSocket: Socket | null = null;
 
 export function getPresenceSocket() {
   if (!presenceSocket) {
-    presenceSocket = io("http://localhost:3001/presence", {
+    presenceSocket = io(`${process.env.NEXT_PUBLIC_API_URL!}/presence` || "http://localhost:3001/presence", {
       transports: ["websocket"],
       autoConnect: false,
     });

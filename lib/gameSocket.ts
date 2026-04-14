@@ -4,7 +4,7 @@ let socket: Socket | null = null;
 
 export function getGameSocket(): Socket {
   if (!socket) {
-    socket = io('http://localhost:3001/game', {
+    socket = io(`${process.env.NEXT_PUBLIC_API_URL!}/game` || "http://localhost:3001/game", {
       transports: ['websocket'],
       autoConnect: false,
     });
