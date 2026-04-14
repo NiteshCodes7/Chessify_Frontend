@@ -16,6 +16,7 @@ import Link from "next/link";
 import { api, setAccessToken } from "@/lib/api";
 import { useAuth } from "@/context/AuthProvider";
 import { useRouter } from "next/navigation";
+import { localApi } from "@/lib/localApi";
 
 type Tab = "chat" | "requests" | "add";
 
@@ -39,9 +40,13 @@ export default function FriendsPage() {
     try {
       await api.post("/auth/logout");
     } catch {}
-    localStorage.removeItem("wsToken");
+
+    await localApi.post("/api/auth/logout");
+
     setAccessToken(null);
+    localStorage.removeItem("wsToken");
     setAuthed(false);
+
     router.push("/auth/login");
   }
 
@@ -154,7 +159,9 @@ export default function FriendsPage() {
               href={item.href}
               title={item.title}
               className={`relative w-10 h-10 flex items-center justify-center transition-all duration-150 ${
-                item.active ? "text-[#c8a96e]" : "text-[#6a6a6a] hover:text-[#d0c8b8]"
+                item.active
+                  ? "text-[#c8a96e]"
+                  : "text-[#6a6a6a] hover:text-[#d0c8b8]"
               }`}
             >
               {item.active && (
