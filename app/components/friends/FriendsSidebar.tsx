@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { getPresenceSocket } from "@/lib/presenceSocket";
 import FriendItem from "./FriendsItem";
+import { getUserId } from "@/lib/getUser";
 
 type Status = "online" | "playing" | "offline";
 
@@ -43,6 +44,7 @@ export default function FriendsSidebar({ onSelect }: FriendsSidebarProps) {
   const [search, setSearch] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const socket = getPresenceSocket();
+  const currentUserId = getUserId();
 
   function handleUnfriend(friendId: string) {
     setFriends((prev) => prev.filter((f) => f.id !== friendId));
@@ -85,6 +87,8 @@ export default function FriendsSidebar({ onSelect }: FriendsSidebarProps) {
     };
 
     const handleDm = ({ from }: { from: string }) => {
+      if (from === currentUserId) return;
+
       setFriends((prev) =>
         prev.map((f) =>
           f.id === from ? { ...f, unreadCount: (f.unreadCount ?? 0) + 1 } : f,
