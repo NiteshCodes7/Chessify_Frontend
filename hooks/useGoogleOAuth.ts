@@ -45,13 +45,17 @@ export function useGoogleOAuth({
     return new Promise<void>((resolve, reject) => {
       // 3. Listen for the postMessage from the callback page
       const onMessage = async (e: MessageEvent) => {
-        console.log("message origin:", e.origin);
-        console.log("expected:", process.env.NEXT_PUBLIC_API_URL);
-        // Only accept messages from our own origin
-        if (e.origin !== process.env.NEXT_PUBLIC_API_URL!) return;
+        if (e.origin !== process.env.NEXT_PUBLIC_API_URL) return;
 
         const { accessToken, refreshToken, sessionToken, wsToken, error } =
           e.data ?? {};
+
+        if (error) {
+          window.removeEventListener("message", onMessage);
+          popupRef.current?.close();
+          reject(new Error(error));
+          return;
+        }
 
         await axios.post("/api/auth/google/set-session", {
           accessToken,
@@ -65,22 +69,11 @@ export function useGoogleOAuth({
         listenerRef.current = null;
         popupRef.current?.close();
 
-        if (error) {
-          reject(new Error(error));
-          return;
-        }
-
-        if (accessToken) {
-          setAccessToken(accessToken);
-
-          if (wsToken) {
-            localStorage.setItem("wsToken", wsToken);
-          }
-
-          setAuthed(true);
-          router.replace(redirectTo);
-          resolve();
-        }
+        setAccessToken(accessToken);
+        if (wsToken) localStorage.setItem("wsToken", wsToken);
+        setAuthed(true);
+        router.replace(redirectTo);
+        resolve();
       };
 
       listenerRef.current = onMessage;
