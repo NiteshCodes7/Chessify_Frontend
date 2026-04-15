@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { getPresenceSocket } from "@/lib/presenceSocket";
 import FriendItem from "./FriendsItem";
 import { getUserId } from "@/lib/getUser";
+import { getSocket } from "@/lib/socket";
 
 type Status = "online" | "playing" | "offline";
 
@@ -19,6 +20,7 @@ type Friend = {
 
 type FriendsSidebarProps = {
   onSelect: (friend: Friend) => void;
+  selectedFriendId: string | null;
 };
 
 type GroupedFriends = {
@@ -39,12 +41,21 @@ const STATUS_LABELS: Record<Status, string> = {
   offline: "Offline",
 };
 
-export default function FriendsSidebar({ onSelect }: FriendsSidebarProps) {
+export default function FriendsSidebar({
+  onSelect,
+  selectedFriendId,
+}: FriendsSidebarProps) {
   const [friends, setFriends] = useState<Friend[]>([]);
   const [search, setSearch] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const socket = getPresenceSocket();
+  const chatSocket = getSocket();
   const currentUserId = getUserId();
+  const selectedFriendIdRef = useRef(selectedFriendId);
+
+  useEffect(() => {
+    selectedFriendIdRef.current = selectedFriendId;
+  }, [selectedFriendId]);
 
   function handleUnfriend(friendId: string) {
     setFriends((prev) => prev.filter((f) => f.id !== friendId));
@@ -88,6 +99,7 @@ export default function FriendsSidebar({ onSelect }: FriendsSidebarProps) {
 
     const handleDm = ({ from }: { from: string }) => {
       if (from === currentUserId) return;
+      if (from === selectedFriendIdRef.current) return;
 
       setFriends((prev) =>
         prev.map((f) =>
@@ -120,7 +132,7 @@ export default function FriendsSidebar({ onSelect }: FriendsSidebarProps) {
 
     socket.on("friends_with_presence", handleFriends);
     socket.on("presence_update", handlePresence);
-    socket.on("dm", handleDm);
+    chatSocket.on("dm", handleDm);
     socket.on("connect", requestFriends);
 
     if (socket.connected) requestFriends();
@@ -128,7 +140,7 @@ export default function FriendsSidebar({ onSelect }: FriendsSidebarProps) {
     return () => {
       socket.off("friends_with_presence", handleFriends);
       socket.off("presence_update", handlePresence);
-      socket.off("dm", handleDm);
+      chatSocket.off("dm", handleDm);
       socket.off("connect", requestFriends);
     };
   }, [socket]);

@@ -160,11 +160,11 @@ export default function FriendItem({ friend, onClick, onUnfriend }: Props) {
           </span>
         )}
 
-        {friend.unreadCount && friend.unreadCount > 0 && (
-          <span className="shrink-0 min-w-5 h-5 px-1 rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center font-medium">
+        {friend.unreadCount && friend.unreadCount > 0 ? (
+          <span className="shrink-0 min-w-4.5 h-4.5 px-1 rounded-full bg-[#c8a96e] text-[#0a0a0a] text-[9px] flex items-center justify-center font-semibold tracking-wide">
             {friend.unreadCount > 9 ? "9+" : friend.unreadCount}
           </span>
-        )}
+        ) : null}
 
         {/* Invite button — only for online friends */}
         {friend.status === "online" && (

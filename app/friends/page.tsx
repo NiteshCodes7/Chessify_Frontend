@@ -241,6 +241,7 @@ export default function FriendsPage() {
               onSelect={(friend) => {
                 setSelectedFriend(friend);
               }}
+              selectedFriendId={selectedFriend?.id ?? null}
             />
           )}
           {tab === "requests" && (
@@ -369,6 +370,7 @@ export default function FriendsPage() {
                         setSelectedFriend(friend);
                         setMobileView("chat");
                       }}
+                      selectedFriendId={selectedFriend?.id ?? null}
                     />
                   )}
 
