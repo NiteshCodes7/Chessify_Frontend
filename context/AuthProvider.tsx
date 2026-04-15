@@ -145,7 +145,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       socket.off("game_invite", onGameInvite);
       socket.off("match_found", onMatchFound);
     };
-  });
+  }, [authed]);
 
   if (loading) {
     return <ChessLoader />;
