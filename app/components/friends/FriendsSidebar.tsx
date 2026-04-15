@@ -71,13 +71,16 @@ export default function FriendsSidebar({ onSelect }: FriendsSidebarProps) {
     const pendingUpdates = new Map<string, Status>();
 
     const handleFriends = (data: Friend[]) => {
-      setFriends(
-        data.map((f) => ({
+      setFriends((prev) => {
+        const unreadMap = new Map(prev.map((f) => [f.id, f.unreadCount ?? 0]));
+
+        return data.map((f) => ({
           ...f,
           status: pendingUpdates.get(f.id) ?? f.status,
-          unreadCount: 0,
-        })),
-      );
+          unreadCount: unreadMap.get(f.id) ?? 0,
+        }));
+      });
+
       pendingUpdates.clear();
     };
 
