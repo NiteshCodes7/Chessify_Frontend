@@ -77,8 +77,6 @@ export default function ChatWindow({
     };
 
     const handleMessageDeleted = ({ messageId }: { messageId: string }) => {
-       console.log("deleting:", messageId);
-  console.log("messages:", messages.map(m => m.id));
       setMessages((prev) => prev.filter((m) => m.id !== messageId));
     };
 
@@ -183,7 +181,9 @@ export default function ChatWindow({
             key={msg.id ?? i}
             message={msg}
             isGameChat={isGameChat}
-            onDelete={(id) => setMessages((prev) => prev.filter((m) => m.id !== id))}
+            onDelete={(id) =>
+              setMessages((prev) => prev.filter((m) => m.id !== id))
+            }
           />
         ))}
         <div ref={bottomRef} />

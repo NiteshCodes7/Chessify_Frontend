@@ -105,9 +105,17 @@ export default function FriendItem({ friend, onClick, onUnfriend }: Props) {
   }
 
   return (
-    <button
+    <div
       onClick={onClick}
-      className="friend-row w-full text-left px-2 py-2 relative group transition-colors duration-100"
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick();
+        }
+      }}
+      className="friend-row w-full text-left px-2 py-2 relative group transition-colors duration-100 cursor-pointer"
     >
       <div className="friend-row-bg absolute inset-0 bg-[#0e0e0e] opacity-0 transition-opacity duration-100" />
       <div className="relative flex items-center gap-2.5">
@@ -259,6 +267,6 @@ export default function FriendItem({ friend, onClick, onUnfriend }: Props) {
           )}
         </button>
       </div>
-    </button>
+    </div>
   );
 }
