@@ -17,6 +17,40 @@ export default function EditProfilePage() {
   const [error, setError] = useState<string | null>(null);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [isAvailable, setIsAvailable] = useState<boolean | null>(null);
+  const [uploading, setUploading] = useState(false);
+
+  async function handleAvatarUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // preview instantly
+    const localUrl = URL.createObjectURL(file);
+    setAvatar(localUrl);
+
+    try {
+      setUploading(true);
+      const formData = new FormData();
+      formData.append("file", file);
+      const { data } = await api.post("/users/me/avatar", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      setAvatar(data.url);
+    } catch {
+      setAvatar("");
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  async function handleAvatarDelete() {
+    try {
+      setUploading(true);
+      await api.delete("/users/me/avatar");
+      setAvatar("");
+    } finally {
+      setUploading(false);
+    }
+  }
 
   useEffect(() => {
     const load = async () => {
@@ -67,7 +101,7 @@ export default function EditProfilePage() {
       return setError("Only lowercase letters, numbers, underscores allowed.");
     try {
       setLoading(true);
-      const { data } = await api.patch("/users/me", { name, username, avatar });
+      const { data } = await api.patch("/users/me", { name, username });
       if (data?.error) {
         setError(data.error);
         setSuggestions(data.suggestions ?? []);
@@ -171,10 +205,12 @@ export default function EditProfilePage() {
             Avatar
           </p>
           <div className="flex items-center gap-4">
-            {/* Avatar preview */}
-            <div className="shrink-0">
-              {avatar ? (
-                <div className="w-14 h-14 border border-[#2a2520] overflow-hidden">
+            {/* Preview */}
+            <div className="relative shrink-0 group">
+              <div className="w-14 h-14 border border-[#2a2520] bg-[#0e0e0e] overflow-hidden flex items-center justify-center">
+                {uploading ? (
+                  <div className="w-4 h-4 rounded-full border border-[#c8a96e]/30 border-t-[#c8a96e] animate-spin" />
+                ) : avatar ? (
                   <Image
                     src={avatar}
                     alt="avatar"
@@ -182,29 +218,68 @@ export default function EditProfilePage() {
                     height={56}
                     className="w-full h-full object-cover"
                   />
-                </div>
-              ) : (
-                <div className="w-14 h-14 border border-[#2a2520] bg-[#0e0e0e] flex items-center justify-center">
+                ) : (
                   <span
                     className="text-[#c8a96e] text-xl font-light"
                     style={{ fontFamily: "Georgia, serif" }}
                   >
                     {avatarLetter}
                   </span>
-                </div>
-              )}
+                )}
+              </div>
             </div>
 
-            {/* URL input */}
-            <div className="flex-1">
-              <input
-                value={avatar}
-                onChange={(e) => setAvatar(e.target.value)}
-                placeholder="Paste image URL…"
-                className="field-input"
-              />
-              <p className="text-[#878383] text-[10px] mt-1.5 font-light">
-                Direct link to an image
+            {/* Actions */}
+            <div className="flex flex-col gap-2 flex-1">
+              {/* Upload button */}
+              <label className="cursor-pointer h-9 px-4 border border-[#1e1e1e] text-[#878383] hover:border-[#c8a96e] hover:text-[#c8a96e] transition-all duration-150 text-xs font-light tracking-wide flex items-center gap-2 w-fit">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  className="w-3.5 h-3.5"
+                >
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="17 8 12 3 7 8" />
+                  <line x1="12" y1="3" x2="12" y2="15" />
+                </svg>
+                Upload image
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleAvatarUpload}
+                  disabled={uploading}
+                />
+              </label>
+
+              {/* Delete button — only if avatar exists */}
+              {avatar && (
+                <button
+                  type="button"
+                  onClick={handleAvatarDelete}
+                  disabled={uploading}
+                  className="h-9 px-4 border border-[#1e1e1e] text-[#555] hover:border-[#8a3030] hover:text-[#c06060] transition-all duration-150 text-xs font-light tracking-wide flex items-center gap-2 w-fit disabled:opacity-30"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    className="w-3.5 h-3.5"
+                  >
+                    <polyline points="3 6 5 6 21 6" />
+                    <path d="M19 6l-1 14H6L5 6" />
+                    <path d="M10 11v6M14 11v6" />
+                    <path d="M9 6V4h6v2" />
+                  </svg>
+                  Remove avatar
+                </button>
+              )}
+
+              <p className="text-[#444] text-[10px] font-light">
+                JPG, PNG or WebP · max 5MB
               </p>
             </div>
           </div>
@@ -351,7 +426,7 @@ export default function EditProfilePage() {
           </button>
           <button
             type="submit"
-            disabled={loading || isAvailable === false}
+            disabled={loading || uploading || isAvailable === false}
             className="flex-1 h-10 text-xs font-light tracking-[0.15em] uppercase border transition-all duration-150 disabled:opacity-30 disabled:cursor-not-allowed"
             style={{
               borderColor: "#c8a96e",
