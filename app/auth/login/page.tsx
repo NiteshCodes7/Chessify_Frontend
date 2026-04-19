@@ -2,7 +2,7 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useAuth } from "@/context/AuthProvider";
-import { api, setAccessToken } from "@/lib/api";
+import { setAccessToken } from "@/lib/api";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import Image from "next/image";
@@ -10,6 +10,7 @@ import Link from "next/link";
 import { useToast } from "@/store/useToast";
 import GoogleButton from "@/components/GoogleButton";
 import axios from "axios";
+import { Eye, EyeClosed } from "lucide-react";
 
 /* ─── Keyframes ─── */
 const styles = `
@@ -98,6 +99,7 @@ export default function LoginPage() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isPassword, setIsPassword] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -341,17 +343,25 @@ export default function LoginPage() {
             />
           </div>
 
-          <div style={{ marginBottom: "0.25rem" }}>
+          <div style={{ marginBottom: "0.25rem" }} className="relative">
             <FieldLabel htmlFor="password">Password</FieldLabel>
+
+            <span
+              className="absolute right-3 top-11 -translate-y-1/2 cursor-pointer z-10"
+              onClick={() => setIsPassword((prev) => !prev)}
+            >
+              {isPassword ? <Eye className="text-[#c8a96e] size-5"/> : <EyeClosed className="text-[#c8a96e] size-5" />}
+            </span>
+
             <input
               id="password"
               name="password"
-              type="password"
+              type={isPassword ? "password" : "text"}
               placeholder="••••••••"
               autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="chess-input"
+              className="chess-input pr-10"
             />
           </div>
 

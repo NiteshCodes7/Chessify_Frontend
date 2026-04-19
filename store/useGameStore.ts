@@ -12,6 +12,7 @@ import { isValidQueenMove } from "@/lib/validateQueenMove";
 import { isValidKingMove } from "@/lib/validateKingMove";
 import { isMoveLegal } from "@/lib/isMoveLegal";
 import { getSocket } from "@/lib/socket";
+import { playSound } from "@/lib/sounds";
 
 type Position = { row: number; col: number };
 
@@ -239,6 +240,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
     // 4️⃣ Attempt move
     if (!selectedPiece) return;
 
+    // if move is not legal
+    const isLegal = get().legalMoves.some(m => m.row === row && m.col === col);
+    if (!isLegal) {
+      playSound("illegal");
+      return;
+    }
+
     let valid = false;
 
     switch (selectedPiece.type) {
@@ -345,6 +353,22 @@ export const useGameStore = create<GameStore>((set, get) => ({
       legalMoves: [],
     });
 
+    // 🔊 Sound
+    const isCapture = board[row][col] !== null;
+    const isCastle =
+      selectedPiece.type === "king" && Math.abs(selected.col - col) === 2;
+    const isPromo = selectedPiece.type === "pawn" && (row === 0 || row === 7);
+    const status = getGameStatus(newBoard, nextTurn);
+
+    if (status.state === "checkmate") playSound("checkmate");
+    else if (status.state === "check") playSound("check");
+    else if (isPromo) playSound("promote");
+    else if (isCastle) playSound("castle");
+    else if (isCapture) playSound("capture");
+    else playSound("move");
+
+    set({ status });
+
     const { gameId } = get();
 
     // 🔜 socket.emit("move", ...)
@@ -380,6 +404,17 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
     const nextTurn = turn === "white" ? "black" : "white";
     const status = getGameStatus(newBoard, nextTurn);
+
+    const isCapture = board[to.row][to.col] !== null;
+    const isCastle = piece.type === "king" && Math.abs(from.col - to.col) === 2;
+    const isPromo = piece.type === "pawn" && (to.row === 0 || to.row === 7);
+
+    if (status.state === "checkmate") playSound("checkmate");
+    else if (status.state === "check") playSound("check");
+    else if (isPromo) playSound("promote");
+    else if (isCastle) playSound("castle");
+    else if (isCapture) playSound("capture");
+    else playSound("move");
 
     set({
       board: newBoard,

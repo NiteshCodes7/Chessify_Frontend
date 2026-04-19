@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Image from "next/image";
 import GoogleButton from "@/components/GoogleButton";
+import { Eye, EyeClosed } from "lucide-react";
 
 const keyframes = `
   @keyframes fadeUp {
@@ -45,6 +46,7 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
+  const [isPassword, setIsPassword] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -228,24 +230,36 @@ export default function RegisterPage() {
           </div>
 
           {/* Password */}
-          <div className="mb-1">
-            <label
-              htmlFor="password"
-              className="mb-[0.45rem] block text-[0.63rem] tracking-[0.18em] uppercase text-[#555]"
-            >
-              Password
-            </label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              placeholder="••••••••"
-              autoComplete="new-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="chess-input"
-            />
-          </div>
+          <div className="mb-1 relative">
+          <label
+            htmlFor="password"
+            className="mb-[0.45rem] block text-[0.63rem] tracking-[0.18em] uppercase text-[#555]"
+          >
+            Password
+          </label>
+
+          <span
+            className="absolute right-3 top-[2.85rem] -translate-y-1/2 cursor-pointer z-10"
+            onClick={() => setIsPassword((prev) => !prev)}
+          >
+            {isPassword ? (
+              <Eye className="text-[#c8a96e] size-5" />
+            ) : (
+              <EyeClosed className="text-[#c8a96e] size-5" />
+            )}
+          </span>
+
+          <input
+            id="password"
+            name="password"
+            type={isPassword ? "password" : "text"}
+            placeholder="••••••••"
+            autoComplete="new-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="chess-input pr-10"
+          />
+        </div>
 
           {error && (
             <div

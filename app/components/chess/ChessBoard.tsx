@@ -4,6 +4,8 @@ import { useGameStore } from "@/store/useGameStore";
 import { PIECE_SYMBOLS } from "@/lib/pieceSymbols";
 import Image from "next/image";
 import ChessClock from "./ChessClock";
+import { findKing } from "@/lib/findKing";
+import { playSound } from "@/lib/sounds";
 
 export default function ChessBoard({ spectator = false }) {
   const { board, selected, turn, status, handleSquareClick } = useGameStore();
@@ -28,6 +30,11 @@ export default function ChessBoard({ spectator = false }) {
   function getDisplayCol(col: number) {
     return playerColor === "black" ? 7 - col : col;
   }
+
+  const checkedKingPos =
+    status.state === "check" || status.state === "checkmate"
+      ? findKing(board, turn)
+      : null;
 
   return (
     <div className="bg-[#080808]">
@@ -58,6 +65,10 @@ export default function ChessBoard({ spectator = false }) {
             const coordColor = isDark ? "text-white" : "text-black";
             const isSelected =selected?.row === realRow && selected?.col === realCol;
             const legalMove = legalMoves.some((m) => m.row === realRow && m.col === realCol);
+            const isLegal = legalMoves.some(m => m.row === realRow && m.col === realCol);
+
+            const isCheckedKing =
+              checkedKingPos?.row === realRow && checkedKingPos?.col === realCol;
 
             let castlingMove = false;
             if (
@@ -100,6 +111,9 @@ export default function ChessBoard({ spectator = false }) {
                 key={`${r}-${c}`}
                 onClick={() => {
                   if (!spectator)
+                    if (selected && !isLegal && board[realRow][realCol]?.color !== turn) {
+                      playSound("illegal");
+                    }
                     handleSquareClick(getDisplayRow(r), getDisplayCol(c));
                 }}
                 className={`
@@ -111,6 +125,7 @@ export default function ChessBoard({ spectator = false }) {
                   ${castlingMove ? "bg-purple-400/50 border-2 border-black" : ""}
                   ${legalMove && !captured ? "bg-blue-400/50 border-2 border-black" : ""}
                   ${captured ? "bg-red-500 border-2 border-black" : ""}
+                  ${isCheckedKing ? "bg-red-600" : ""}
                 `}
               >
                 {/* FILE (a–h) */}
