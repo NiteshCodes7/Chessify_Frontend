@@ -59,6 +59,7 @@ A real-time multiplayer chess platform built with Next.js 15, featuring live mat
 
 <!-- ARCHITECTURE DIAGRAM: Add your Eraser.io full architecture diagram here -->
 > ![Architecture](./public/assets/architecture.png)
+[View Full Architecture on Eraser.io](https://app.eraser.io/workspace/YLQYjAGwqekeW8xuezXB)
 
 ---
 
@@ -71,7 +72,7 @@ Chessify uses a **4-token system** to handle auth securely across cross-domain d
 | `accessToken` | JS Memory | API request Authorization header | 10 min |
 | `refreshToken` | httpOnly Cookie (via BFF) | Rotate access tokens | 7 days |
 | `sessionToken` | httpOnly Cookie (via BFF) | Middleware route protection | 7 days |
-| `wsToken` | localStorage | WebSocket handshake auth | 12 hours |
+| `wsToken` | localStorage | WebSocket handshake auth | 1 hours |
 
 ### BFF Proxy Pattern
 
