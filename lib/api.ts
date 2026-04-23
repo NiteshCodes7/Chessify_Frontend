@@ -36,7 +36,7 @@ api.interceptors.response.use(
     if (err.response?.status === 401 && !err.config._retry) {
       err.config._retry = true;
       try {
-        const { data } = await api.post("/api/auth/refresh");
+        const { data } = await axios.post("/api/auth/refresh");
         setAccessToken(data.accessToken);
         localStorage.setItem("wsToken", data.wsToken);
         updateAllSocketAuth(data.wsToken)
